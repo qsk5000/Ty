@@ -1604,6 +1604,96 @@ input, textarea { outline: none; }
 .dialog-actions .btn { padding: 14px; }
 
 /* ══════════════════════════════════════════
+   QUESTION IMAGE
+══════════════════════════════════════════ */
+.question-image-wrap {
+  margin: 14px 0 0;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 2px solid rgba(197,160,89,.3);
+  background: var(--bg-2);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+.question-image-wrap img {
+  width: 100%;
+  display: block;
+  max-height: 320px;
+  object-fit: contain;
+  background: #f0f4f8;
+  cursor: zoom-in;
+  transition: transform var(--t-base);
+}
+.question-image-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: rgba(197,160,89,.08);
+  border-top: 1px solid rgba(197,160,89,.15);
+  font-size: .73rem;
+  font-weight: 800;
+  color: var(--gold-700);
+  letter-spacing: .4px;
+}
+.question-image-label i { font-size: .7rem; }
+
+/* Lightbox for zooming question images */
+#imgLightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,14,26,.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9500;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  cursor: zoom-out;
+}
+#imgLightbox.show { display: flex; }
+#imgLightbox img {
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-xl);
+  object-fit: contain;
+  animation: lightboxIn .25s var(--ease-spring);
+}
+@keyframes lightboxIn {
+  from { opacity:0; transform: scale(.88); }
+  to   { opacity:1; transform: scale(1); }
+}
+.lightbox-close {
+  position: absolute;
+  top: 16px; left: 16px;
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: var(--r-sm);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--t-fast);
+}
+.lightbox-close:hover { background: rgba(239,68,68,.4); }
+
+/* Review screen question image */
+.review-q-img {
+  width: 100%;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--border);
+  max-height: 220px;
+  object-fit: contain;
+  background: var(--bg-2);
+  display: block;
+  margin-top: 8px;
+  cursor: zoom-in;
+}
+
+/* ══════════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════════ */
 @media (max-width: 420px) {
@@ -1649,6 +1739,12 @@ input, textarea { outline: none; }
       </button>
     </div>
   </div>
+</div>
+
+<!-- ═══════ IMAGE LIGHTBOX ═══════ -->
+<div id="imgLightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-xmark"></i></button>
+  <img id="lightboxImg" src="" alt="صورة السؤال">
 </div>
 
 <!-- ═══════ HERO ═══════ -->
@@ -1785,6 +1881,12 @@ input, textarea { outline: none; }
         <div class="q-label">السؤال</div>
       </div>
       <div class="q-text" id="qText">—</div>
+      <div class="question-image-wrap" id="qImageWrap" style="display:none">
+        <img id="qImage" src="" alt="صورة السؤال" onclick="openLightbox(this.src)">
+        <div class="question-image-label">
+          <i class="fas fa-image"></i> صورة توضيحية — اضغط للتكبير
+        </div>
+      </div>
     </div>
 
     <div class="answer-section">
@@ -2224,6 +2326,18 @@ function renderQuestion() {
   document.getElementById('progressLabel').textContent = `${idx + 1} / ${total}`;
   document.getElementById('progressFill').style.width  = `${(idx / total) * 100}%`;
 
+  // Question image (if exists in question data)
+  const qImgWrap = document.getElementById('qImageWrap');
+  const qImg     = document.getElementById('qImage');
+  const imgUrl   = q.imageUrl || q.image || q.img || '';
+  if (imgUrl) {
+    qImg.src = imgUrl;
+    qImgWrap.style.display = 'block';
+  } else {
+    qImg.src = '';
+    qImgWrap.style.display = 'none';
+  }
+
   // Restore saved answer if revisiting
   const saved = state.userAnswers[idx];
   document.getElementById('answer').value = saved?.text || '';
@@ -2468,10 +2582,14 @@ async function showReview(examId) {
 
     document.getElementById('reviewQList').innerHTML = res.answers.map((ans, i) => {
       const modelAns = examData.questions?.[i]?.modelAnswer || 'غير متوفرة';
+      const qImgUrl  = examData.questions?.[i]?.imageUrl || examData.questions?.[i]?.image || examData.questions?.[i]?.img || '';
       return `<div class="review-q-card">
         <div class="review-q-head">
           <div class="review-q-num">${i + 1}</div>
-          <div>${ans.question}</div>
+          <div>
+            ${ans.question}
+            ${qImgUrl ? `<img class="review-q-img" src="${qImgUrl}" alt="صورة السؤال" onclick="openLightbox('${qImgUrl}')">` : ''}
+          </div>
         </div>
         <div class="review-q-body">
           <div class="review-block review-student">
@@ -2506,6 +2624,20 @@ async function showReview(examId) {
     hideLoader();
   }
 }
+
+/* ─── Lightbox ─── */
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('imgLightbox').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('imgLightbox').classList.remove('show');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLightbox();
+});
 
 /* ─── Score Ring ─── */
 function animateScore(fillId, numId, score) {
