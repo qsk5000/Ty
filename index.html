@@ -864,6 +864,7 @@ input, textarea { outline: none; }
 .exam-status-pill.pending{ background: var(--warn-light); color: #78350F; border: 1px solid rgba(245,158,11,.25); }
 .exam-status-pill.expired{ background: var(--danger-light); color: #7F1D1D; border: 1px solid rgba(239,68,68,.2); }
 .exam-status-pill.upcoming{ background: var(--info-light); color: #1E3A8A; border: 1px solid rgba(59,130,246,.2); }
+.exam-status-pill.locked{ background: var(--danger-light); color: #7F1D1D; border: 1px solid rgba(239,68,68,.2); }
 
 .exam-chips {
   display: flex;
@@ -1680,6 +1681,76 @@ input, textarea { outline: none; }
 }
 .lightbox-close:hover { background: rgba(239,68,68,.4); }
 
+/* ─── Ask Teacher ─── */
+.ask-teacher-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 14px;
+  padding: 8px 16px;
+  background: var(--info-light);
+  color: var(--info);
+  border: 1px solid rgba(59,130,246,.2);
+  border-radius: var(--r-sm);
+  font-size: .82rem; font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.ask-teacher-btn:hover { background: rgba(59,130,246,.18); }
+.ask-teacher-btn.answered { background: rgba(16,185,129,.10); color: #059669; border-color: rgba(16,185,129,.25); }
+.ask-teacher-btn .pulse-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--info);
+  animation: askPulse 1.4s infinite;
+}
+@keyframes askPulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+#askOverlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(5,14,26,.55);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  z-index: 9600; align-items: center; justify-content: center; padding: 20px;
+}
+#askOverlay.show { display: flex; }
+.ask-modal {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-xl);
+  width: 100%; max-width: 420px;
+  padding: 24px;
+  animation: lightboxIn .25s var(--ease-spring);
+}
+.ask-modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.ask-modal-title { font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 8px; color: var(--text-primary); }
+.ask-modal-title i { color: var(--info); }
+.ask-modal-close {
+  background: var(--bg-2); border: none; color: var(--text-muted);
+  width: 30px; height: 30px; border-radius: var(--r-sm);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.ask-thread { max-height: 240px; overflow-y: auto; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+.ask-bubble { padding: 10px 14px; border-radius: var(--r-md); font-size: .85rem; line-height: 1.6; }
+.ask-bubble.mine { background: var(--bg-2); color: var(--text-primary); align-self: flex-end; border-bottom-left-radius: 4px; }
+.ask-bubble.reply { background: rgba(16,185,129,.10); color: #065F46; align-self: flex-start; border-bottom-right-radius: 4px; }
+.ask-bubble.pending { background: var(--info-light); color: var(--info); font-size: .78rem; text-align: center; }
+.ask-textarea {
+  width: 100%; min-height: 80px; padding: 12px 14px;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  font-family: inherit; font-size: .88rem; resize: vertical;
+  outline: none; background: var(--surface-2); color: var(--text-primary);
+}
+.ask-textarea:focus { border-color: var(--info); }
+.ask-send-btn {
+  width: 100%; margin-top: 12px; padding: 12px;
+  background: var(--info); color: #fff; border: none;
+  border-radius: var(--r-sm); font-weight: 800; font-size: .9rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity var(--t-fast);
+}
+.ask-send-btn:disabled { opacity: .5; cursor: not-allowed; }
+
 /* Review screen question image */
 .review-q-img {
   width: 100%;
@@ -1745,6 +1816,21 @@ input, textarea { outline: none; }
 <div id="imgLightbox" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-xmark"></i></button>
   <img id="lightboxImg" src="" alt="صورة السؤال">
+</div>
+
+<!-- ═══════ ASK TEACHER MODAL ═══════ -->
+<div id="askOverlay" onclick="closeAskModal()">
+  <div class="ask-modal" onclick="event.stopPropagation()">
+    <div class="ask-modal-head">
+      <div class="ask-modal-title"><i class="fas fa-comment-dots"></i> اسأل الأستاذ — سؤال <span id="askQNum">1</span></div>
+      <button class="ask-modal-close" onclick="closeAskModal()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="ask-thread" id="askThread"></div>
+    <textarea class="ask-textarea" id="askInput" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendQuestionToTeacher();}"></textarea>
+    <button class="ask-send-btn" id="askSendBtn" onclick="sendQuestionToTeacher()">
+      <i class="fas fa-paper-plane"></i> إرسال السؤال
+    </button>
+  </div>
 </div>
 
 <!-- ═══════ HERO ═══════ -->
@@ -1887,6 +1973,9 @@ input, textarea { outline: none; }
           <i class="fas fa-image"></i> صورة توضيحية — اضغط للتكبير
         </div>
       </div>
+      <button type="button" class="ask-teacher-btn" id="askTeacherBtn" onclick="openAskModal()">
+        <i class="fas fa-comment-dots"></i> اسأل الأستاذ
+      </button>
     </div>
 
     <div class="answer-section">
@@ -2055,6 +2144,7 @@ const state = {
   selectedFile:  null,
   allExams:      [],
   resultsMap:    {},
+  attendedExamIds: new Set(),
   pendingFinish: false,
   savedAnswers:  {}   // track which answers were already saved cross-navigation
 };
@@ -2158,12 +2248,15 @@ async function getServerTime() {
 async function loadExams(code) {
   showLoader('تحميل جدول الاختبارات...');
   const now = await getServerTime();
-  const [examSnap, resSnap] = await Promise.all([
+  const [examSnap, resSnap, attSnap] = await Promise.all([
     db.collection('Exams').where('studentCode', '==', code).get(),
-    db.collection('Results').where('studentCode', '==', code).get()
+    db.collection('Results').where('studentCode', '==', code).get(),
+    db.collection('Attendance').where('studentCode', '==', code).get()
   ]);
   state.resultsMap = {};
   resSnap.forEach(d => { state.resultsMap[d.data().examId] = d.data(); });
+  state.attendedExamIds = new Set();
+  attSnap.forEach(d => { state.attendedExamIds.add(d.data().examId); });
   state.allExams = [];
   examSnap.forEach(d => { state.allExams.push({ id: d.id, ...d.data() }); });
   renderExams(now);
@@ -2215,8 +2308,15 @@ function renderExams(now) {
       btn = `<button class="btn btn-outline-gold btn-sm btn-icon" onclick="showReview('${ex.id}')"><i class="fas fa-eye"></i> عرض إجاباتي</button>`;
     } else if (isLive) {
       live++; cardClass = 'live';
-      statusPill = `<div class="exam-status-pill live"><span class="blink"></span> جارٍ الآن</div>`;
-      btn = `<button class="btn btn-primary btn-sm btn-icon" onclick="prepareExam('${ex.id}')"><i class="fas fa-play"></i> دخول الاختبار</button>`;
+      const attended = state.attendedExamIds.has(ex.id);
+      if (attended) {
+        statusPill = `<div class="exam-status-pill live"><span class="blink"></span> جارٍ الآن</div>`;
+        btn = `<button class="btn btn-primary btn-sm btn-icon" onclick="prepareExam('${ex.id}')"><i class="fas fa-play"></i> دخول الاختبار</button>`;
+      } else {
+        cardClass += ' locked';
+        statusPill = `<div class="exam-status-pill locked"><i class="fas fa-user-lock"></i> يتطلب تسجيل حضور</div>`;
+        btn = `<button class="btn btn-outline-gold btn-sm btn-icon" onclick="blockedNoAttendance()"><i class="fas fa-lock"></i> سجّل حضورك أولاً</button>`;
+      }
     } else if (isFuture) {
       cardClass = 'upcoming';
       const timeStr = start.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
@@ -2254,9 +2354,18 @@ function renderExams(now) {
 }
 
 /* ─── Start Exam ─── */
+function blockedNoAttendance() {
+  toast('لازم تسجل حضورك من بوابة الطالب قبل ما تدخل الاختبار', 'warn');
+}
+
 function prepareExam(examId) {
   const ex = state.allExams.find(e => e.id === examId);
-  if (ex) startExam(ex);
+  if (!ex) return;
+  if (!state.attendedExamIds.has(examId)) {
+    blockedNoAttendance();
+    return;
+  }
+  startExam(ex);
 }
 
 async function startExam(ex) {
@@ -2361,6 +2470,153 @@ function renderQuestion() {
   document.getElementById('prevBtn').style.display = isFirst ? 'none' : 'flex';
 
   updateDots();
+  refreshAskButton();
+}
+
+/* ─── Ask Teacher (multi-message chat) ─── */
+let askListenerUnsub = null;
+let askCtx = null; // { examId, qIndex, subject, qText }
+
+function askDocId(examId, qIndex) {
+  return `${examId}_${state.student.id}_${qIndex}`;
+}
+
+async function refreshAskButtonEl(btn, examId, qIndex) {
+  if (!btn) return;
+  btn.className = 'ask-teacher-btn';
+  btn.innerHTML = `<i class="fas fa-comment-dots"></i> اسأل الأستاذ`;
+  try {
+    const snap = await db.collection('ExamQuestions').doc(askDocId(examId, qIndex)).get();
+    if (snap.exists) {
+      const d = snap.data();
+      if (d.status === 'answered') {
+        btn.classList.add('answered');
+        btn.innerHTML = `<i class="fas fa-check-circle"></i> رد الأستاذ جاهز`;
+      } else {
+        btn.innerHTML = `<span class="pulse-dot"></span> بانتظار رد الأستاذ`;
+      }
+    }
+  } catch (e) { /* silent — button just shows default state */ }
+}
+
+// Convenience wrapper for the single ask button on the exam-taking screen
+function refreshAskButton() {
+  refreshAskButtonEl(document.getElementById('askTeacherBtn'), state.currentExam.id, state.currentIndex);
+}
+
+function openAskModal(examId, qIndex, subject, qText) {
+  // Falls back to the live exam-taking context when called without arguments
+  if (examId === undefined) {
+    examId = state.currentExam.id;
+    qIndex = state.currentIndex;
+    subject = state.currentExam.subject;
+    qText = state.currentExam.questions[state.currentIndex]?.q || '';
+  }
+  askCtx = { examId, qIndex, subject, qText };
+
+  document.getElementById('askQNum').textContent = qIndex + 1;
+  document.getElementById('askInput').value = '';
+  document.getElementById('askThread').innerHTML = `<div class="ask-bubble pending"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>`;
+  document.getElementById('askSendBtn').style.display = '';
+  document.getElementById('askSendBtn').disabled = false;
+  document.getElementById('askSendBtn').innerHTML = `<i class="fas fa-paper-plane"></i> إرسال`;
+  document.getElementById('askOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+
+  if (askListenerUnsub) askListenerUnsub();
+  askListenerUnsub = db.collection('ExamQuestions').doc(askDocId(examId, qIndex))
+    .collection('messages').orderBy('timestamp', 'asc')
+    .onSnapshot(snap => {
+      renderAskThread(snap.docs.map(d => d.data()));
+      refreshAskButtonForCtx();
+    }, () => {
+      document.getElementById('askThread').innerHTML = `<div class="ask-bubble pending">تعذر تحميل المحادثة</div>`;
+    });
+}
+
+function refreshAskButtonForCtx() {
+  if (!askCtx) return;
+  // Exam-taking screen button
+  if (state.currentExam && askCtx.examId === state.currentExam.id && askCtx.qIndex === state.currentIndex) {
+    refreshAskButtonEl(document.getElementById('askTeacherBtn'), askCtx.examId, askCtx.qIndex);
+  }
+  // Review screen button (if present on the page)
+  refreshAskButtonEl(document.getElementById(`askBtn_review_${askCtx.qIndex}`), askCtx.examId, askCtx.qIndex);
+}
+
+function closeAskModal() {
+  document.getElementById('askOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+  if (askListenerUnsub) { askListenerUnsub(); askListenerUnsub = null; }
+  askCtx = null;
+}
+
+function renderAskThread(messages) {
+  const el = document.getElementById('askThread');
+  if (!messages.length) {
+    el.innerHTML = `<div class="ask-bubble pending">اكتب سؤالك بالأسفل وأرسله للأستاذ 👇</div>`;
+    return;
+  }
+  el.innerHTML = messages.map(m => {
+    if (m.sender === 'teacher') {
+      return `<div class="ask-bubble reply"><i class="fas fa-chalkboard-teacher"></i> ${escapeHtml(m.text||'')}</div>`;
+    }
+    return `<div class="ask-bubble mine">${escapeHtml(m.text||'')}</div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function sendQuestionToTeacher() {
+  const text = document.getElementById('askInput').value.trim();
+  if (!text) return toast('اكتب رسالتك أولاً', 'warn');
+  if (!askCtx) return;
+  const btn = document.getElementById('askSendBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...`;
+  try {
+    const { examId, qIndex, subject, qText } = askCtx;
+    const docId = askDocId(examId, qIndex);
+    const threadRef = db.collection('ExamQuestions').doc(docId);
+
+    // Ensure the thread doc exists / stays up to date, then append the message
+    await threadRef.set({
+      examId: examId,
+      studentCode: state.student.id,
+      studentName: state.student.name || '',
+      subject: subject || '',
+      questionIndex: qIndex,
+      questionPreview: (qText || '').slice(0, 200),
+      status: 'pending',
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    await threadRef.collection('messages').add({
+      sender: 'student',
+      text,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('askInput').value = '';
+
+    try {
+      const msg = `❓ *رسالة من طالب*\n👤 ${state.student.name}\n🆔 ${state.student.id}\n📖 ${subject}\n❓ السؤال رقم ${qIndex + 1}\n\n💬 ${text}`;
+      await fetch(`${WORKER_URL}/bot${TG_TOKEN}/sendMessage`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: TG_CHAT_ID, text: msg, parse_mode: 'Markdown' })
+      });
+    } catch (_) { /* Telegram failure shouldn't block the message from being saved */ }
+  } catch (e) {
+    toast('فشل الإرسال، تحقق من اتصالك', 'error');
+  }
+  btn.disabled = false;
+  btn.innerHTML = `<i class="fas fa-paper-plane"></i> إرسال`;
 }
 
 function updateCharCount() {
@@ -2613,12 +2869,16 @@ async function showReview(examId) {
                 ? `<div><span class="q-points-badge"><i class="fas fa-star"></i> ${ans.points} نقطة</span></div>`
                 : ''}
             </div>` : ''}
+          <button type="button" class="ask-teacher-btn" id="askBtn_review_${i}" onclick="openAskModal('${examId}', ${i}, '${(res.subject||'').replace(/'/g,"\\'")}', '${(ans.question||'').replace(/'/g,"\\'").slice(0,200)}')">
+            <i class="fas fa-comment-dots"></i> اسأل الأستاذ
+          </button>
         </div>
       </div>`;
     }).join('');
 
     hideLoader();
     switchScreen('s-review');
+    res.answers.forEach((_, i) => refreshAskButtonEl(document.getElementById(`askBtn_review_${i}`), examId, i));
   } catch(e) {
     toast('خطأ في تحميل النتائج', 'error');
     hideLoader();
