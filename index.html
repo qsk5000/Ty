@@ -1497,6 +1497,18 @@ input, textarea { outline: none; }
 .review-student { background: #EFF6FF; border-right: 3px solid var(--info); }
 .review-model   { background: #ECFDF5; border-right: 3px solid var(--success); }
 .review-teacher { background: #FFFBEB; border-right: 3px solid var(--warn); border: 1px dashed rgba(245,158,11,.3); border-right: 3px solid var(--warn); }
+.review-corrected { background: var(--gold-100); border-right: 3px solid var(--gold-500); border: 1px dashed rgba(197,160,89,.35); border-right: 3px solid var(--gold-500); }
+.review-corrected-img {
+  width: 100%;
+  border-radius: var(--r-sm);
+  border: 1.5px solid rgba(197,160,89,.4);
+  max-height: 280px;
+  object-fit: contain;
+  background: var(--bg-2);
+  display: block;
+  margin-top: 8px;
+  cursor: zoom-in;
+}
 
 .q-points-badge {
   display: inline-flex;
@@ -2868,6 +2880,11 @@ async function showReview(examId) {
               ${ans.points !== undefined
                 ? `<div><span class="q-points-badge"><i class="fas fa-star"></i> ${ans.points} نقطة</span></div>`
                 : ''}
+            </div>` : ''}
+          ${isGraded && ans.correctedImageUrl ? `
+            <div class="review-block review-corrected">
+              <div class="review-block-label"><i class="fas fa-file-circle-check"></i> صورة الإجابة المصححة</div>
+              <img class="review-corrected-img" src="${ans.correctedImageUrl}" alt="صورة الإجابة المصححة" onclick="openLightbox('${ans.correctedImageUrl}')">
             </div>` : ''}
           <button type="button" class="ask-teacher-btn" id="askBtn_review_${i}" onclick="openAskModal('${examId}', ${i}, '${(res.subject||'').replace(/'/g,"\\'")}', '${(ans.question||'').replace(/'/g,"\\'").slice(0,200)}')">
             <i class="fas fa-comment-dots"></i> اسأل الأستاذ
