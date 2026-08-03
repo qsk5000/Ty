@@ -1021,6 +1021,11 @@ input, textarea { outline: none; }
   border-color: var(--navy-500);
   transform: scaleY(1.5);
 }
+.q-dot.skipped {
+  background: linear-gradient(90deg, var(--warn), #FBBF24);
+  border-color: transparent;
+}
+.q-dot { cursor: pointer; }
 
 /* ══════════════════════════════════════════
    QUESTION CARD
@@ -1239,6 +1244,56 @@ input, textarea { outline: none; }
 }
 .photo-remove:hover { background: var(--danger); }
 
+/* Multi-photo grid */
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.photo-thumb {
+  position: relative;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  border: 2px solid var(--gold-400);
+  box-shadow: var(--shadow-gold);
+  aspect-ratio: 1;
+}
+.photo-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.photo-thumb-num {
+  position: absolute;
+  top: 4px; right: 4px;
+  background: rgba(5,14,26,.75);
+  color: var(--gold-300);
+  font-size: .62rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: var(--r-full);
+}
+.photo-thumb-remove {
+  position: absolute;
+  bottom: 4px; left: 4px;
+  background: rgba(239,68,68,.9);
+  border: none;
+  color: #fff;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .68rem;
+  cursor: pointer;
+}
+.photo-thumb-remove:hover { background: var(--danger); }
+.photo-count-note {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin: -6px 0 12px;
+}
+
 /* Textarea */
 .answer-textarea {
   width: 100%;
@@ -1296,6 +1351,298 @@ input, textarea { outline: none; }
   color: var(--text-secondary);
   font-size: .9rem;
 }
+
+/* Skip question link */
+.skip-row {
+  text-align: center;
+  margin-top: 12px;
+}
+.skip-link {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'Cairo', sans-serif;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--t-fast);
+}
+.skip-link:hover { color: var(--warn); }
+
+/* Question-map trigger (topbar) */
+.qmap-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(197,160,89,.12);
+  border: 1px solid rgba(197,160,89,.25);
+  color: var(--gold-300);
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: .78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.qmap-btn:hover { background: rgba(197,160,89,.2); }
+
+/* Question map overlay */
+#qmapOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,14,26,.6);
+  backdrop-filter: blur(6px);
+  z-index: 300;
+  align-items: flex-end;
+  justify-content: center;
+}
+#qmapOverlay.show { display: flex; }
+.qmap-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border-radius: 28px 28px 0 0;
+  padding: 22px 18px 28px;
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  animation: sheetUp .32s var(--ease-spring);
+}
+.qmap-title {
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 900;
+  font-size: 1.05rem;
+  color: var(--navy-900);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.qmap-close {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.qmap-sub {
+  font-size: .78rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.qmap-list {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.qmap-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+  cursor: pointer;
+  text-align: right;
+  font-family: 'Cairo', sans-serif;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.qmap-row:hover { border-color: var(--gold-500); }
+.qmap-row.current { border-color: var(--navy-600); background: rgba(27,60,101,.06); }
+.qmap-row-num {
+  width: 30px; height: 30px;
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900;
+  font-size: .82rem;
+  flex-shrink: 0;
+  background: var(--bg-2);
+  color: var(--text-secondary);
+}
+.qmap-row.answered .qmap-row-num { background: var(--success-light); color: var(--success-dark); }
+.qmap-row.skipped .qmap-row-num  { background: var(--warn-light); color: var(--warn); }
+.qmap-row-text {
+  flex: 1;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qmap-row-status { font-size: .95rem; flex-shrink: 0; }
+.qmap-row.answered .qmap-row-status i { color: var(--success); }
+.qmap-row.skipped .qmap-row-status i  { color: var(--warn); }
+.qmap-row.empty .qmap-row-status i    { color: var(--text-disabled); }
+
+/* Finish review summary (inside confirm dialog) */
+.freview-stats {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin: 6px 0 16px;
+}
+.freview-stat { text-align: center; }
+.freview-stat-num {
+  font-size: 1.3rem;
+  font-weight: 900;
+  font-family: 'Tajawal', sans-serif;
+}
+.freview-stat.answered .freview-stat-num { color: var(--success); }
+.freview-stat.skipped .freview-stat-num  { color: var(--warn); }
+.freview-stat-lbl {
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.freview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  max-height: 140px;
+  overflow-y: auto;
+  margin-bottom: 6px;
+  padding: 4px;
+}
+.freview-chip {
+  width: 32px; height: 32px;
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .74rem;
+  font-weight: 900;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+.freview-chip.answered { background: var(--success-light); border-color: rgba(16,185,129,.3); color: var(--success-dark); }
+.freview-chip.skipped  { background: var(--warn-light); border-color: rgba(245,158,11,.3); color: var(--warn); }
+
+/* ══════════════════════════════════════════
+   HYPE / MOTIVATION SCREEN
+══════════════════════════════════════════ */
+.hype-emblem {
+  width: 78px; height: 78px;
+  margin: 0 auto 18px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, var(--navy-700), var(--navy-500));
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(197,160,89,.25);
+  box-shadow: var(--shadow-navy);
+  font-size: 2rem;
+  animation: hypeFloat 2.6s ease-in-out infinite;
+}
+@keyframes hypeFloat {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50%     { transform: translateY(-8px) rotate(-4deg); }
+}
+.hype-eyebrow {
+  text-align: center;
+  font-size: .78rem;
+  font-weight: 800;
+  color: var(--gold-700);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+.hype-title {
+  text-align: center;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--navy-900);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+.hype-title .accent { color: var(--gold-600, #B9902E); }
+.hype-sub {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: .85rem;
+  font-weight: 600;
+  margin-bottom: 22px;
+}
+.hype-quote-card {
+  background: linear-gradient(145deg, var(--navy-900), var(--navy-700));
+  border-radius: var(--r-xl);
+  padding: 22px 20px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(197,160,89,.2);
+  box-shadow: var(--shadow-navy);
+  position: relative;
+  overflow: hidden;
+}
+.hype-quote-card::before {
+  content: '\201C';
+  position: absolute;
+  top: -18px; right: 10px;
+  font-size: 5rem;
+  color: rgba(197,160,89,.15);
+  font-family: Georgia, serif;
+}
+.hype-quote-text {
+  color: var(--gold-200);
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.9;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.hype-meta-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.hype-meta-cell {
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px 8px;
+  text-align: center;
+}
+.hype-meta-icon { color: var(--gold-600, #B9902E); font-size: 1.1rem; margin-bottom: 6px; }
+.hype-meta-val {
+  font-weight: 900;
+  font-size: .95rem;
+  color: var(--navy-900);
+  font-family: 'Tajawal', sans-serif;
+}
+.hype-meta-lbl {
+  font-size: .68rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-top: 2px;
+}
+.hype-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 26px;
+}
+.hype-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--gold-100);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+}
+.hype-tip i { color: var(--gold-700); width: 18px; text-align: center; }
 
 /* ══════════════════════════════════════════
    RESULT SCREEN
@@ -1813,6 +2160,10 @@ input, textarea { outline: none; }
     <div class="dialog-icon-wrap">📤</div>
     <div class="dialog-title">تأكيد إرسال الإجابات</div>
     <div class="dialog-msg">هل أنت متأكد من إنهاء الاختبار؟ لن تتمكن من التعديل بعد الإرسال.</div>
+
+    <div class="freview-stats" id="freviewStats"></div>
+    <div class="freview-list" id="freviewList"></div>
+
     <div class="dialog-actions">
       <button class="btn btn-ghost" onclick="closeDialog()">
         <i class="fas fa-arrow-right"></i> تراجع
@@ -1821,6 +2172,18 @@ input, textarea { outline: none; }
         <i class="fas fa-paper-plane"></i> إرسال وإنهاء
       </button>
     </div>
+  </div>
+</div>
+
+<!-- ═══════ QUESTION MAP (jump / review) ═══════ -->
+<div id="qmapOverlay" onclick="closeQuestionMap()">
+  <div class="qmap-sheet" onclick="event.stopPropagation()">
+    <div class="qmap-title">
+      قائمة الأسئلة
+      <button class="qmap-close" onclick="closeQuestionMap()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="qmap-sub">اضغط على أي سؤال للانتقال إليه مباشرة</div>
+    <div class="qmap-list" id="qmapList"></div>
   </div>
 </div>
 
@@ -1865,6 +2228,51 @@ input, textarea { outline: none; }
 
 <!-- ═══════ CONTAINER ═══════ -->
 <div class="container">
+
+  <!-- ── HYPE / MOTIVATION ── -->
+  <div class="screen" id="s-hype">
+    <div class="card">
+      <div class="hype-emblem" id="hypeEmoji">🔥</div>
+      <div class="hype-eyebrow">استعد يا بطل</div>
+      <div class="hype-title">جاهز يا <span class="accent" id="hypeName">بطل</span>؟<br>هسة وكتك تلمع فيه! ✨</div>
+      <div class="hype-sub" id="hypeSubjectLine">مادة —</div>
+
+      <div class="hype-quote-card">
+        <div class="hype-quote-text" id="hypeQuote">ركّز وثق بنفسك… كل سؤال تحله هو خطوة أقرب لهدفك.</div>
+      </div>
+
+      <div class="hype-meta-row">
+        <div class="hype-meta-cell">
+          <div class="hype-meta-icon"><i class="fas fa-list-ol"></i></div>
+          <div class="hype-meta-val" id="hypeQCount">0</div>
+          <div class="hype-meta-lbl">سؤال</div>
+        </div>
+        <div class="hype-meta-cell">
+          <div class="hype-meta-icon"><i class="fas fa-hourglass-half"></i></div>
+          <div class="hype-meta-val" id="hypeDuration">—</div>
+          <div class="hype-meta-lbl">الوقت المتاح</div>
+        </div>
+        <div class="hype-meta-cell">
+          <div class="hype-meta-icon"><i class="fas fa-graduation-cap"></i></div>
+          <div class="hype-meta-val">ميزان</div>
+          <div class="hype-meta-lbl">أكاديمية IQ</div>
+        </div>
+      </div>
+
+      <div class="hype-tips">
+        <div class="hype-tip"><i class="fas fa-mug-hot"></i> خذ نفس عميق واهدأ قبل لا تبدأ</div>
+        <div class="hype-tip"><i class="fas fa-eye"></i> اقرأ كل سؤال زين قبل ما تجاوب</div>
+        <div class="hype-tip"><i class="fas fa-forward"></i> إذا سؤال صعب اتخطاه وارجعله بعدين</div>
+      </div>
+
+      <button class="btn btn-primary" id="hypeStartBtn" onclick="launchExamFromHype()">
+        <i class="fas fa-bolt"></i> يلا نبدأ الاختبار
+      </button>
+      <button class="btn btn-ghost" style="margin-top:10px" onclick="switchScreen('s-exams')">
+        <i class="fas fa-arrow-right"></i> رجوع
+      </button>
+    </div>
+  </div>
 
   <!-- ── LOGIN ── -->
   <div class="screen active" id="s-login">
@@ -1955,6 +2363,9 @@ input, textarea { outline: none; }
     <div class="exam-topbar">
       <div class="topbar-subject" id="examSubjectLabel">—</div>
       <div class="topbar-right">
+        <button type="button" class="qmap-btn" onclick="openQuestionMap()">
+          <i class="fas fa-list-check"></i> الأسئلة
+        </button>
         <div class="timer-chip">
           <i class="fas fa-hourglass-half"></i>
           <span id="timer">00:00</span>
@@ -2012,17 +2423,10 @@ input, textarea { outline: none; }
         </label>
       </div>
       <input type="file" id="imageUpload" accept="image/*" style="display:none" onchange="extractText(this)">
-      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="previewSelectedPhoto(this)">
+      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="addSelectedPhoto(this)">
 
-      <div class="photo-preview" id="photoPreview">
-        <img id="imgPreview" src="" alt="صورة الإجابة">
-        <div class="photo-preview-overlay">
-          <div class="photo-preview-label"><i class="fas fa-check-circle"></i> صورة مرفقة</div>
-          <button class="photo-remove" onclick="cancelPhoto()">
-            <i class="fas fa-trash"></i> إزالة
-          </button>
-        </div>
-      </div>
+      <div class="photo-count-note" id="photoCountNote" style="display:none"></div>
+      <div class="photo-preview-grid" id="photoPreviewGrid"></div>
 
       <textarea
         class="answer-textarea"
@@ -2044,6 +2448,11 @@ input, textarea { outline: none; }
       <button class="btn btn-primary" id="nextBtn" onclick="processNextStep()">
         <span id="nextBtnText">السؤال التالي</span>
         <i class="fas fa-arrow-left"></i>
+      </button>
+    </div>
+    <div class="skip-row">
+      <button type="button" class="skip-link" id="skipBtn" onclick="skipQuestion()">
+        <i class="fas fa-forward"></i> تخطي هذا السؤال والمتابعة
       </button>
     </div>
 
@@ -2146,6 +2555,8 @@ const TG_CHAT_ID = '1067709858';
 const WORKER_URL = 'https://qskyy.ahmedtec312.workers.dev';
 
 /* ─── App State ─── */
+const MAX_PHOTOS_PER_Q = 4;
+
 const state = {
   student:       null,
   currentExam:   null,
@@ -2153,13 +2564,29 @@ const state = {
   userAnswers:   [],
   timeLeft:      0,
   timerInterval: null,
-  selectedFile:  null,
+  selectedFiles: [],   // [{file, dataUrl}] pending photos for current question, not yet uploaded
   allExams:      [],
   resultsMap:    {},
   attendedExamIds: new Set(),
   pendingFinish: false,
-  savedAnswers:  {}   // track which answers were already saved cross-navigation
+  savedAnswers:  {},   // track which answers were already saved cross-navigation
+  pendingExam:   null  // exam waiting to be launched from the hype/motivation screen
 };
+
+/* ─── Motivational messages (hype screen) ─── */
+const HYPE_QUOTES = [
+  'ركّز وثق بنفسك… كل سؤال تحله هو خطوة أقرب لهدفك.',
+  'إنت درست وتعبت، هسة جاي دورك تفتخر بنفسك.',
+  'خذ نفس عميق… النجاح مو صدفة، هو نتيجة تعبك اليومي.',
+  'لا تستعجل، اقرأ زين وجاوب براحتك، الوقت بيدك.',
+  'كل امتحان هو فرصة تثبت فيها شكد تطورت.',
+  'إنت أقوى من أي سؤال صعب بيه الامتحان.',
+  'صدّق بنفسك مثل ما صدّقت بيك عيلتك وأستاذك.',
+  'النتيجة الحلوة تبدأ بأول سؤال… يلا ابدأ بثقة.',
+  'كل دقيقة تدرس فيها اليوم راح تشوف نتيجتها هسة.',
+  'أنت مو بس تمتحن مادة… أنت تمتحن إصرارك، وإصرارك واضح.'
+];
+const HYPE_EMOJIS = ['🔥','💪','🚀','🌟','🏆','⚡'];
 
 /* ─── UI Helpers ─── */
 function showLoader(msg = 'جاري التحميل...') {
@@ -2377,6 +2804,33 @@ function prepareExam(examId) {
     blockedNoAttendance();
     return;
   }
+  showHypeScreen(ex);
+}
+
+/* ─── Hype / Motivation Screen ─── */
+function showHypeScreen(ex) {
+  state.pendingExam = ex;
+
+  const name = state.student?.name || 'بطل';
+  document.getElementById('hypeName').textContent = name;
+  document.getElementById('hypeSubjectLine').textContent = `مادة ${ex.subject}`;
+  document.getElementById('hypeQCount').textContent = ex.questions?.length ?? 0;
+
+  const durMin = ex.durationMinutes || null;
+  document.getElementById('hypeDuration').textContent = durMin ? `${durMin} د` : '—';
+
+  document.getElementById('hypeQuote').textContent =
+    HYPE_QUOTES[Math.floor(Math.random() * HYPE_QUOTES.length)];
+  document.getElementById('hypeEmoji').textContent =
+    HYPE_EMOJIS[Math.floor(Math.random() * HYPE_EMOJIS.length)];
+
+  switchScreen('s-hype');
+}
+
+function launchExamFromHype() {
+  const ex = state.pendingExam;
+  if (!ex) return;
+  state.pendingExam = null;
   startExam(ex);
 }
 
@@ -2385,7 +2839,7 @@ async function startExam(ex) {
   state.currentExam  = ex;
   state.currentIndex = 0;
   state.userAnswers  = new Array(ex.questions.length).fill(null);
-  state.selectedFile = null;
+  state.selectedFiles = [];
   const now = await getServerTime();
   const end = ex.end.toDate();
   state.timeLeft = Math.floor((end - now) / 1000);
@@ -2402,7 +2856,7 @@ function buildQDots() {
   const total = state.currentExam.questions.length;
   document.getElementById('qDots').innerHTML =
     Array.from({ length: total }, (_, i) =>
-      `<div class="q-dot" id="qdot-${i}"></div>`
+      `<div class="q-dot" id="qdot-${i}" onclick="jumpToQuestion(${i})" title="سؤال ${i + 1}"></div>`
     ).join('');
 }
 
@@ -2411,8 +2865,11 @@ function updateDots() {
   for (let i = 0; i < total; i++) {
     const dot = document.getElementById(`qdot-${i}`);
     if (!dot) continue;
+    const saved = state.userAnswers[i];
+    const isSkipped  = saved?.skipped;
+    const isAnswered = saved && !saved.skipped && (saved.text || saved.photoCount > 0);
     dot.className = 'q-dot' +
-      (i < state.currentIndex ? ' done' : '') +
+      (isSkipped ? ' skipped' : (i < state.currentIndex || isAnswered ? ' done' : '')) +
       (i === state.currentIndex ? ' current' : '');
   }
 }
@@ -2465,12 +2922,17 @@ function renderQuestion() {
   updateCharCount();
 
   // Photo
-  cancelPhoto();
-  if (saved?.hasPhoto === 'نعم') {
-    // Show indicator that photo was already attached
+  cancelAllPhotos();
+  if (saved?.photoCount > 0) {
     document.getElementById('answerStatus').innerHTML =
       `<i class="fas fa-image" style="color:var(--info)"></i>
-       <span style="color:var(--info);font-size:.72rem;font-weight:700">صورة مرفقة مسبقاً</span>`;
+       <span style="color:var(--info);font-size:.72rem;font-weight:700">
+         ${saved.photoCount > 1 ? `${saved.photoCount} صور مرفقة مسبقاً` : 'صورة مرفقة مسبقاً'}
+       </span>`;
+  } else if (saved?.skipped) {
+    document.getElementById('answerStatus').innerHTML =
+      `<i class="fas fa-forward" style="color:var(--warn)"></i>
+       <span style="color:var(--warn);font-size:.72rem;font-weight:700">تم تخطي هذا السؤال</span>`;
   } else {
     document.getElementById('answerStatus').innerHTML = '';
   }
@@ -2638,21 +3100,55 @@ function updateCharCount() {
   el.className   = `char-count ${len > 0 ? 'has-text' : ''}`;
 }
 
-/* ─── Photo ─── */
-function previewSelectedPhoto(input) {
+/* ─── Photo (multi-image support) ─── */
+function addSelectedPhoto(input) {
   if (!input.files?.[0]) return;
-  state.selectedFile = input.files[0];
+  const alreadyAttached = state.userAnswers[state.currentIndex]?.photoCount || 0;
+  if (state.selectedFiles.length + alreadyAttached >= MAX_PHOTOS_PER_Q) {
+    toast(`الحد الأقصى ${MAX_PHOTOS_PER_Q} صور لكل سؤال`, 'warn');
+    input.value = '';
+    return;
+  }
+  const file = input.files[0];
   const reader = new FileReader();
   reader.onload = e => {
-    document.getElementById('imgPreview').src = e.target.result;
-    document.getElementById('photoPreview').style.display = 'block';
+    state.selectedFiles.push({ file, dataUrl: e.target.result });
+    renderPhotoGrid();
+    toast('تم إرفاق الصورة بنجاح', 'success');
   };
-  reader.readAsDataURL(input.files[0]);
-  toast('تم إرفاق الصورة بنجاح', 'success');
+  reader.readAsDataURL(file);
+  input.value = '';
 }
-function cancelPhoto() {
-  state.selectedFile = null;
-  document.getElementById('photoPreview').style.display = 'none';
+
+function removeSelectedPhoto(idx) {
+  state.selectedFiles.splice(idx, 1);
+  renderPhotoGrid();
+}
+
+function renderPhotoGrid() {
+  const grid = document.getElementById('photoPreviewGrid');
+  const note = document.getElementById('photoCountNote');
+  grid.innerHTML = state.selectedFiles.map((p, i) => `
+    <div class="photo-thumb">
+      <img src="${p.dataUrl}" alt="صورة الإجابة ${i + 1}">
+      <div class="photo-thumb-num">${i + 1}</div>
+      <button class="photo-thumb-remove" onclick="removeSelectedPhoto(${i})">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+  `).join('');
+  if (state.selectedFiles.length > 0) {
+    note.style.display = 'block';
+    note.textContent = `${state.selectedFiles.length} من ${MAX_PHOTOS_PER_Q} صور مرفقة لهذا السؤال`;
+  } else {
+    note.style.display = 'none';
+  }
+}
+
+function cancelAllPhotos() {
+  state.selectedFiles = [];
+  document.getElementById('photoPreviewGrid').innerHTML = '';
+  document.getElementById('photoCountNote').style.display = 'none';
   document.getElementById('photoInput').value = '';
 }
 
@@ -2688,35 +3184,56 @@ async function extractText(input) {
 }
 
 /* ─── Navigation ─── */
-function goToPrev() {
+async function goToPrev() {
   if (state.currentIndex === 0) return;
-  // Save current without upload (text only)
-  const ans = document.getElementById('answer').value.trim();
-  if (state.userAnswers[state.currentIndex] === null) {
-    state.userAnswers[state.currentIndex] = { text: ans, hasPhoto: 'لا' };
-  } else {
-    state.userAnswers[state.currentIndex].text = ans;
-  }
+  await saveCurrentAnswer();
   state.currentIndex--;
+  renderQuestion();
+}
+
+async function jumpToQuestion(i) {
+  if (!state.currentExam) return;
+  if (i === state.currentIndex) { closeQuestionMap(); return; }
+  await saveCurrentAnswer();
+  state.currentIndex = i;
+  renderQuestion();
+  closeQuestionMap();
+}
+
+async function skipQuestion() {
+  await saveCurrentAnswer(); // upload any attached photos first so nothing is lost
+  const idx = state.currentIndex;
+  const existing = state.userAnswers[idx];
+  // Only mark as "skipped" if the student truly left nothing behind
+  if (!existing || (!existing.text && !existing.photoCount)) {
+    state.userAnswers[idx] = { text: '', photoCount: 0, hasPhoto: 'لا', skipped: true };
+  }
+  document.getElementById('answer').value = '';
+  cancelAllPhotos();
+
+  const isLast = idx === state.currentExam.questions.length - 1;
+  if (isLast) { openFinishReview(); return; }
+  state.currentIndex++;
   renderQuestion();
 }
 
 async function processNextStep() {
   const ans  = document.getElementById('answer').value.trim();
   const isLast = state.currentIndex === state.currentExam.questions.length - 1;
+  const alreadyHasPhoto = (state.userAnswers[state.currentIndex]?.photoCount || 0) > 0;
 
-  if (!ans && !state.selectedFile && !state.userAnswers[state.currentIndex]?.hasPhoto) {
-    toast('اكتب إجابة أو ارفق صورة للمتابعة', 'warn');
-    return;
-  }
-
-  if (isLast) {
-    state.pendingFinish = true;
-    openDialog();
+  if (!ans && state.selectedFiles.length === 0 && !alreadyHasPhoto) {
+    toast('اكتب إجابة، ارفق صورة، أو اضغط "تخطي هذا السؤال"', 'warn');
     return;
   }
 
   await saveCurrentAnswer();
+
+  if (isLast) {
+    openFinishReview();
+    return;
+  }
+
   state.currentIndex++;
   renderQuestion();
 }
@@ -2729,31 +3246,92 @@ async function confirmFinish() {
 
 async function saveCurrentAnswer() {
   const ans = document.getElementById('answer').value.trim();
-  let photoState = state.userAnswers[state.currentIndex]?.hasPhoto || 'لا';
+  const existing = state.userAnswers[state.currentIndex];
+  let photoCount = existing?.photoCount || 0;
+  let hasPhoto   = existing?.hasPhoto || 'لا';
 
-  if (state.selectedFile) {
-    showLoader('جاري معالجة الصورة ورفعها...');
-    try {
-      const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
-      const compressed = await imageCompression(state.selectedFile, options);
-      const fd = new FormData();
-      fd.append('chat_id', TG_CHAT_ID);
-      fd.append('photo', compressed);
-      fd.append('caption',
-        `📚 ${state.student.name}\n📖 ${state.currentExam.subject}\n❓ س${state.currentIndex + 1}`);
-      const res = await fetch(`${WORKER_URL}/bot${TG_TOKEN}/sendPhoto`, { method: 'POST', body: fd });
-      photoState = res.ok ? 'نعم' : 'فشل الرفع';
-      if (res.ok) toast('تم رفع الصورة ✓', 'success');
-      else toast('تعذّر رفع الصورة', 'warn');
-    } catch(e) {
-      photoState = 'خطأ تقني';
-      toast('خطأ أثناء معالجة الصورة', 'error');
+  if (state.selectedFiles.length > 0) {
+    showLoader(`جاري معالجة ورفع ${state.selectedFiles.length > 1 ? 'الصور' : 'الصورة'}...`);
+    let uploaded = 0;
+    for (let n = 0; n < state.selectedFiles.length; n++) {
+      try {
+        const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
+        const compressed = await imageCompression(state.selectedFiles[n].file, options);
+        const fd = new FormData();
+        fd.append('chat_id', TG_CHAT_ID);
+        fd.append('photo', compressed);
+        fd.append('caption',
+          `📚 ${state.student.name}\n📖 ${state.currentExam.subject}\n❓ س${state.currentIndex + 1}` +
+          (state.selectedFiles.length > 1 ? ` — صورة ${n + 1}/${state.selectedFiles.length}` : ''));
+        const res = await fetch(`${WORKER_URL}/bot${TG_TOKEN}/sendPhoto`, { method: 'POST', body: fd });
+        if (res.ok) uploaded++;
+      } catch (e) { /* individual photo failed, continue with the rest */ }
     }
     hideLoader();
+    if (uploaded > 0) {
+      photoCount += uploaded;
+      hasPhoto = 'نعم';
+      toast(uploaded === state.selectedFiles.length
+        ? `تم رفع ${uploaded > 1 ? 'الصور' : 'الصورة'} ✓`
+        : `تم رفع ${uploaded} من ${state.selectedFiles.length} صور فقط`, uploaded === state.selectedFiles.length ? 'success' : 'warn');
+    } else {
+      toast('تعذّر رفع الصور', 'warn');
+    }
   }
 
-  state.userAnswers[state.currentIndex] = { text: ans, hasPhoto: photoState };
-  state.selectedFile = null;
+  const skipped = existing?.skipped && !ans && photoCount === 0 ? true : false;
+  state.userAnswers[state.currentIndex] = { text: ans, photoCount, hasPhoto, skipped };
+  state.selectedFiles = [];
+}
+
+/* ─── Question Map (jump to any question) ─── */
+function openQuestionMap() {
+  renderQuestionMapList();
+  document.getElementById('qmapOverlay').classList.add('show');
+}
+function closeQuestionMap() {
+  document.getElementById('qmapOverlay').classList.remove('show');
+}
+function renderQuestionMapList() {
+  const total = state.currentExam.questions.length;
+  const list = document.getElementById('qmapList');
+  list.innerHTML = Array.from({ length: total }, (_, i) => {
+    const saved = state.userAnswers[i];
+    const isSkipped  = saved?.skipped;
+    const isAnswered = saved && !isSkipped && (saved.text || saved.photoCount > 0);
+    const statusClass = isSkipped ? 'skipped' : (isAnswered ? 'answered' : 'empty');
+    const statusIcon  = isSkipped ? 'fa-forward' : (isAnswered ? 'fa-check-circle' : 'fa-circle-question');
+    const preview = (state.currentExam.questions[i].q || '').slice(0, 40);
+    return `<div class="qmap-row ${statusClass} ${i === state.currentIndex ? 'current' : ''}" onclick="jumpToQuestion(${i})">
+      <div class="qmap-row-num">${i + 1}</div>
+      <div class="qmap-row-text">${preview}</div>
+      <div class="qmap-row-status"><i class="fas ${statusIcon}"></i></div>
+    </div>`;
+  }).join('');
+}
+
+/* ─── Finish Review (summary before final submit) ─── */
+function openFinishReview() {
+  const total = state.currentExam.questions.length;
+  let answered = 0, skipped = 0;
+  const chips = [];
+  for (let i = 0; i < total; i++) {
+    const saved = state.userAnswers[i];
+    const isSkipped  = saved?.skipped;
+    const isAnswered = saved && !isSkipped && (saved.text || saved.photoCount > 0);
+    if (isAnswered) answered++;
+    else if (isSkipped) skipped++;
+    chips.push(`<div class="freview-chip ${isAnswered ? 'answered' : isSkipped ? 'skipped' : ''}"
+                  onclick="closeDialog();jumpToQuestion(${i})">${i + 1}</div>`);
+  }
+  document.getElementById('freviewStats').innerHTML = `
+    <div class="freview-stat answered"><div class="freview-stat-num">${answered}</div><div class="freview-stat-lbl">أجبت</div></div>
+    <div class="freview-stat skipped"><div class="freview-stat-num">${skipped}</div><div class="freview-stat-lbl">تخطيت</div></div>
+    <div class="freview-stat"><div class="freview-stat-num">${total}</div><div class="freview-stat-lbl">الإجمالي</div></div>
+  `;
+  document.getElementById('freviewList').innerHTML = chips.join('');
+  state.pendingFinish = true;
+  openDialog();
 }
 
 /* ─── Finish ─── */
@@ -2762,8 +3340,14 @@ async function finishExam() {
   clearInterval(state.timerInterval);
 
   const finalAnswers = state.currentExam.questions.map((q, i) => {
-    const r = state.userAnswers[i] || { text: '', hasPhoto: 'لا' };
-    return { question: q.q, answer: r.text, hasPhoto: r.hasPhoto };
+    const r = state.userAnswers[i] || { text: '', hasPhoto: 'لا', photoCount: 0, skipped: false };
+    return {
+      question:   q.q,
+      answer:     r.text,
+      hasPhoto:   r.hasPhoto || 'لا',
+      photoCount: r.photoCount || 0,
+      skipped:    !!r.skipped
+    };
   });
 
   // Auto-grade via keywords
@@ -2779,8 +3363,8 @@ async function finishExam() {
 
   const total       = state.currentExam.questions.length;
   const autoScore   = Math.round((correctCount / total) * 100);
-  const answered    = finalAnswers.filter(a => a.answer || a.hasPhoto === 'نعم').length;
-  const photoCount  = finalAnswers.filter(a => a.hasPhoto === 'نعم').length;
+  const answered    = finalAnswers.filter(a => a.answer || a.photoCount > 0).length;
+  const photoCount  = finalAnswers.reduce((sum, a) => sum + (a.photoCount || 0), 0);
 
   try {
     await db.collection('Results').add({
@@ -2865,7 +3449,12 @@ async function showReview(examId) {
             ${ans.answer || '<em style="opacity:.5">لا توجد إجابة نصية</em>'}
             ${ans.hasPhoto === 'نعم'
               ? `<div style="margin-top:8px">
-                   <span class="chip"><i class="fas fa-image"></i> صورة مرفقة</span>
+                   <span class="chip"><i class="fas fa-image"></i> ${ans.photoCount > 1 ? `${ans.photoCount} صور مرفقة` : 'صورة مرفقة'}</span>
+                 </div>`
+              : ''}
+            ${ans.skipped
+              ? `<div style="margin-top:8px">
+                   <span class="chip" style="color:var(--warn)"><i class="fas fa-forward"></i> تم تخطي هذا السؤال</span>
                  </div>`
               : ''}
           </div>
