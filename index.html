@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js"></script>
 
@@ -2685,8 +2686,16 @@ async function checkAuth() {
   btn.disabled = true;
   showLoader('التحقق من الهوية...');
   try {
+    if (!firebase.auth().currentUser) {
+      await firebase.auth().signInAnonymously();
+    }
+
     const snap = await db.collection('StudentPortal').doc(code).get();
     if (snap.exists) {
+      const data = snap.data();
+      if (!data.authUid) {
+        await db.collection('StudentPortal').doc(code).update({ authUid: firebase.auth().currentUser.uid });
+      }
       state.student = { id: code, ...snap.data() };
       updateHero(state.student.name);
       setProfileStrip();
@@ -2695,7 +2704,7 @@ async function checkAuth() {
     } else {
       toast('الكود غير صحيح، تحقق وأعد المحاولة', 'error');
     }
-  } catch(e) { toast('خطأ في الاتصال بالخادم', 'error'); }
+  } catch(e) { toast('خطأ في الاتصال بالخادم: ' + e.message, 'error'); }
   btn.disabled = false;
   hideLoader();
 }
